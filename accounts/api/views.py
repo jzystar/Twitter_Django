@@ -52,7 +52,7 @@ class AccountViewSet(viewsets.ViewSet):
             return Response({
                 'success': False,
                 'message': 'Username and password does not match.'
-            })
+            }, status=400)
 
         django_login(request, user)
         return Response({
