@@ -9,11 +9,12 @@ class TweetViewSet(viewsets.GenericViewSet):
     serializer_class = TweetSerializerForCreate
 
     def get_permissions(self):
+        # action - the name of the current action (e.g., list, create).
         if self.action == 'list':
             return [AllowAny()]
         return [IsAuthenticated()]
 
-    def list(self, request):
+    def list(self, request): # get tweets without logging in
         if 'user_id' not in request.query_params:
             return Response({'error': 'missing user_id'}, status=400)
 
@@ -34,6 +35,6 @@ class TweetViewSet(viewsets.GenericViewSet):
                 'message': 'Please check input.',
                 'errors': serializer.errors
             }, status=400)
-        tweet = serializer.save()
+        tweet = serializer.save() # call create method in TweetSerializerForCreate
 
         return Response(TweetSerializer(tweet).data, status=201)

@@ -3,7 +3,7 @@ from rest_framework.test import APIClient
 from tweets.models import Tweet
 
 
-TWEET_LIST_API = '/api/tweets/'
+TWEET_LIST_API = '/api/tweets/' # must end with /
 TWEET_CREATE_API = '/api/tweets/'
 
 
@@ -38,7 +38,7 @@ class TweetApiTests(TestCase):
         response = self.anonymous_user.get(TWEET_LIST_API, {'user_id': self.user2.id})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['tweets']), 2)
-        #check the order
+        # check the order
         self.assertEqual(response.data['tweets'][0]['id'], self.tweets2[1].id)
         self.assertEqual(response.data['tweets'][1]['id'], self.tweets2[0].id)
 
