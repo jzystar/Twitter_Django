@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     "debug_toolbar",
     'tweets',
     'friendships',
-    'newsfeeds'
+    'newsfeeds',
+    'comments'
 ]
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
