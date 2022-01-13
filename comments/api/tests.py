@@ -35,12 +35,17 @@ class CommentApiTests(TestCase):
         self.assertEqual(response.status_code, 400)
 
         # content too long
-        response = self.user1_client.post(COMMENT_URL, {'tweet_id': self.tweet.id, 'content': '1'*141})
+        response = self.user1_client.post(COMMENT_URL, {
+            'tweet_id': self.tweet.id,
+            'content': '1'*141
+        })
         self.assertEqual(response.status_code, 400)
         self.assertEqual('content' in response.data['errors'], True)
 
         # comment successfully
-        response = self.user1_client.post(COMMENT_URL, {'tweet_id': self.tweet.id, 'content': '1'})
+        response = self.user1_client.post(COMMENT_URL, {
+            'tweet_id': self.tweet.id, 'content': '1'
+        })
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data['user']['id'], self.user1.id)
         self.assertEqual(response.data['tweet_id'], self.tweet.id)
