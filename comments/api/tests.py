@@ -96,7 +96,7 @@ class CommentApiTests(TestCase):
             'created_at': now
         })
         self.assertEqual(response.status_code, 200)
-        comment.refresh_from_db() # update memory
+        comment.refresh_from_db() # update computer memory
         self.assertEqual(comment.content, 'new')
         self.assertEqual(comment.user, self.user1)
         self.assertEqual(comment.tweet, self.tweet)
