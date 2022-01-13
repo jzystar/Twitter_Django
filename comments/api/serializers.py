@@ -24,7 +24,7 @@ class CommentSerializerForCreate(serializers.ModelSerializer):
         tweet_id = data['tweet_id']
         if not Tweet.objects.filter(id = tweet_id).exists():
             raise ValidationError({
-                'message': 'tweet does not exist'
+                'message': 'tweet does not exist.'
             })
 
         return data

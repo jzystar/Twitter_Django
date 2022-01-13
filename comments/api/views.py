@@ -10,7 +10,6 @@ from comments.api.serializers import (
 
 class CommentViewSet(viewsets.GenericViewSet):
     serializer_class = CommentSerializerForCreate
-    queryset = Comment.objects.all()
 
     def get_permissions(self):
         if self.action == 'create':
