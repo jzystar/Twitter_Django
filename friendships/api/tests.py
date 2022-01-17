@@ -40,7 +40,7 @@ class FriendshipApiTests(TestCase):
         response = self.user1_client.post(url)
         self.assertEqual(response.status_code, 400)
         # user not exist
-        response = self.user1_client.post(FOLLOW_URL.format(100))
+        response = self.user1_client.post(FOLLOW_URL.format(0))
         self.assertEqual(response.status_code, 404)
         # followed successfully
         response = self.user2_client.post(url)
@@ -70,7 +70,7 @@ class FriendshipApiTests(TestCase):
         response = self.user1_client.post(url)
         self.assertEqual(response.status_code, 400)
         # user not exist
-        response = self.user1_client.post(UNFOLLOW_URL.format(100))
+        response = self.user1_client.post(UNFOLLOW_URL.format(0))
         self.assertEqual(response.status_code, 404)
         # unfollow successfully
         Friendship.objects.create(from_user=self.user2, to_user=self.user1)
