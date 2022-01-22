@@ -38,16 +38,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #Third party library
     'rest_framework',
-    "debug_toolbar",
+    'debug_toolbar',
+    'django_filters',
+    # Project apps
     'tweets',
     'friendships',
     'newsfeeds',
-    'comments'
+    'comments',
 ]
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
 MIDDLEWARE = [
@@ -134,3 +138,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# if local_settings does not exist in production environment, try, catch
+try:
+    from .local_settings import *
+except:
+    pass
