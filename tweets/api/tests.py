@@ -5,6 +5,7 @@ from tweets.models import Tweet
 
 TWEET_LIST_API = '/api/tweets/' # must end with /
 TWEET_CREATE_API = '/api/tweets/'
+TWEET_RETRIEVE_API = '/api/tweets/{}/'
 
 
 class TweetApiTests(TestCase):
@@ -61,3 +62,24 @@ class TweetApiTests(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data['user']['id'], self.user1.id)
         self.assertEqual(Tweet.objects.count(), tweets_count + 1)
+    
+    def test_retrieve(self):
+        # wrong tweet id 
+        url = TWEET_RETRIEVE_API.format(0)
+        response = self.anonymous_user.get(url)
+        self.assertEqual(response.status_code, 404)
+        
+        # get all comments
+        tweet = self.create_tweet(self.user1)
+        url = TWEET_RETRIEVE_API.format(tweet.id)
+        response = self.anonymous_user.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['comments']), 0)
+
+        # add comments
+        self.create_comment(self.user1, tweet)
+        self.create_comment(self.user2, tweet)
+        another_tweet = self.create_tweet(self.user2)
+        self.create_comment(self.user1, another_tweet)
+        response = self.anonymous_user.get(url)
+        self.assertEqual(len(response.data['comments']), 2)
