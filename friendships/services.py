@@ -14,8 +14,15 @@ class FriendshipService:
         # friendships = Friendship.objects.filter(to_user=user).select_related('from_user')
         # return [friendship.from_user for friendship in friendships]
 
-        friendships = Friendship.objects.filter(to_user=user)
-        follower_ids = [friendship.from_user_id for friendship in friendships]
-        followers = User.objects.filter(id__in=follower_ids)
+        # correct version 1
+        # friendships = Friendship.objects.filter(to_user=user)
+        # follower_ids = [friendship.from_user_id for friendship in friendships]
+        # followers = User.objects.filter(id__in=follower_ids)
+
+        # correct version 2
+        friendships = Friendship.objects.filter(
+            to_user=user,
+        ).prefetch_related('from_user')
+        followers = [friendship.from_user for friendship in friendships]
 
         return followers
