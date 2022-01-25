@@ -8,7 +8,7 @@ from comments.api.serializers import (
     CommentSerializerForCreate,
     CommentSerializerForUpdate
 )
-from utils.decorators import required_param
+from utils.decorators import required_params
 
 
 class CommentViewSet(viewsets.GenericViewSet):
@@ -23,7 +23,7 @@ class CommentViewSet(viewsets.GenericViewSet):
             return [IsAuthenticated(), IsObjectOwner()]
         return [AllowAny()]
 
-    @required_param(params=['tweet_id'])
+    @required_params(params=['tweet_id'])
     def list(self, request):
         # if "tweet_id" not in request.query_params:
         #     return Response({

@@ -3,7 +3,7 @@ from rest_framework import status
 from functools import wraps
 
 
-def required_param(request_attr='query_params', params=None):
+def required_params(request_attr='query_params', params=None):
     if params == None:
         params = []
         
