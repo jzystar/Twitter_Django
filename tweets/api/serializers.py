@@ -28,6 +28,7 @@ class TweetSerializerForCreate(serializers.ModelSerializer):
 
 
 class TweetSerializerWithComment(serializers.ModelSerializer):
+    # comment.tweet => tweet.comment_set.all() 反查机制
     comments = CommentSerializer(source="comment_set", many=True)
 
     class Meta:

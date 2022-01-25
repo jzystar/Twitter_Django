@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'friendships',
     'newsfeeds',
     'comments',
+    'likes',
 ]
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
