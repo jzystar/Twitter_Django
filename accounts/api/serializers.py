@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework import exceptions
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -19,6 +20,10 @@ class UserSerializerForFriendship(UserSerializerForTweet):
 
 
 class UserSerializerForComment(UserSerializerForTweet):
+    pass
+
+
+class UserSerializerForLike(UserSerializerForTweet):
     pass
 
 
