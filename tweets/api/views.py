@@ -8,7 +8,7 @@ from tweets.api.serializers import (
 )
 from tweets.models import Tweet
 from newsfeeds.services import NewsFeedService
-from utils.decorators import required_param
+from utils.decorators import required_params
 
 
 class TweetViewSet(viewsets.GenericViewSet):
@@ -22,7 +22,7 @@ class TweetViewSet(viewsets.GenericViewSet):
         return [IsAuthenticated()]
 
 
-    @required_param(params=['user_id'])
+    @required_params(params=['user_id'])
     def list(self, request): # get tweets without logging in
         # if 'user_id' not in request.query_params:
         #     return Response({'error': 'missing user_id'}, status=400)
