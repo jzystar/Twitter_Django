@@ -14,6 +14,6 @@ class IsObjectOwner(BasePermission):
     # GET /api/comments/1/ -> retrieve
     # DELETE /api/comments/1/ ->destroy
     # PATCH /api/comments/1/ -> partial_update
-    # PUT /api/comments/1/1 -> update
+    # PUT /api/comments/1/ -> update
     def has_object_permission(self, request, view, obj):
         return request.user == obj.user
