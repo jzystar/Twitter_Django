@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from tweets.models import Tweet
 from rest_framework.test import APIClient
 from comments.models import Comment
+from newsfeeds.models import NewsFeed
 
 
 class TestCase(DjangoTestCase):
@@ -33,3 +34,6 @@ class TestCase(DjangoTestCase):
             content = 'default comment content'
 
         return Comment.objects.create(user=user, tweet=tweet, content=content)
+
+    def create_newsfeed(self, user, tweet):
+        return NewsFeed.objects.create(user=user, tweet=tweet)
