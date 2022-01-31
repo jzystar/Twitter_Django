@@ -30,9 +30,6 @@ class CommentSerializer(serializers.ModelSerializer):
     def get_likes_count(self, obj):
         return obj.like_set.count()
 
-    def get_likes_count(self, obj):
-        return obj.like_set.count()
-
 
 class CommentSerializerForCreate(serializers.ModelSerializer):
     tweet_id = serializers.IntegerField()
