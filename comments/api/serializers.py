@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 from comments.models import Comment
 from tweets.models import Tweet
 from accounts.api.serializers import UserSerializerForComment
-from likes.service import LikeService
+from likes.services import LikeService
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -26,9 +26,6 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_has_liked(self, obj):
         return LikeService.has_liked(self.context['request'].user, obj)
-
-    def get_likes_count(self, obj):
-        return obj.like_set.count()
 
     def get_likes_count(self, obj):
         return obj.like_set.count()
