@@ -34,11 +34,7 @@ class CommentViewSet(viewsets.GenericViewSet):
         comments = self.filter_queryset(queryset).prefetch_related('user').order_by('created_at')
         # tweet_id = request.query_params["tweet_id"]
         # comments = Comment.objects.filter(tweet_id=tweet_id).order_by('created_at')
-        serializer = CommentSerializer(
-            comments,
-            context={'request': request},
-            many=True,
-        )
+        serializer = CommentSerializer(comments, many=True)
 
         return Response({
             "comments":serializer.data
@@ -57,7 +53,7 @@ class CommentViewSet(viewsets.GenericViewSet):
         comment = serializer.save()
 
         return Response(
-            CommentSerializer(comment, context={'request': request}).data,
+            CommentSerializer(comment).data,
             status=status.HTTP_201_CREATED
         )
     # have to add *args and **kwargs, otherwise, no pk.
@@ -77,7 +73,7 @@ class CommentViewSet(viewsets.GenericViewSet):
         # save will call update if parameter has instance, otherwise call create
         comment = serializer.save()
         return Response(
-            CommentSerializer(comment, context={'request': request}).data,
+            CommentSerializer(comment).data,
             status=status.HTTP_200_OK
         )
 
