@@ -42,12 +42,14 @@ INSTALLED_APPS = [
     'rest_framework',
     'debug_toolbar',
     'django_filters',
+    'notifications',
     # Project apps
     'tweets',
     'friendships',
     'newsfeeds',
     'comments',
     'likes',
+    'inbox',
 ]
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
