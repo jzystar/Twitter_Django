@@ -7,6 +7,7 @@ from inbox.api.serializers import (
     NotificationSerializer,
     NotificationSerializerForUpdate,
 )
+from utils.decorators import required_params
 
 
 class NotificationViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin):
@@ -32,6 +33,7 @@ class NotificationViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixi
         }, status=status.HTTP_200_OK)
 
     # /api/notifications/1/
+    @required_params(method='PUT', params=['unread'])
     def update(self, request, *args, **kwargs):
         notification = self.get_object()
         serializer = NotificationSerializerForUpdate(
