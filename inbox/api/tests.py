@@ -6,9 +6,6 @@ from notifications.models import Notification
 COMMENT_URL = '/api/comments/'
 LIKE_URL = '/api/likes/'
 NOTIFICATION_URL = '/api/notifications/'
-UNREAD_URL = '/api/notifications/unread-count/'
-MARK_ALL_AS_READ_URL = '/api/notifications/mark-all-as-read/'
-UPDATE_NOTIFICATION_URL = '/api/notifications/{}/'
 
 
 class NotificationTestCase(TestCase):
@@ -70,7 +67,8 @@ class NotificationApiTests(TestCase):
             'content_type': 'tweet',
             'object_id': tweet.id
         })
-        response = self.user1_client.get(UNREAD_URL)
+        url = '/api/notifications/unread-count/'
+        response = self.user1_client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['unread_count'], 1)
 
@@ -79,12 +77,12 @@ class NotificationApiTests(TestCase):
             'tweet_id': tweet.id,
             'content': 'ajknjbbha',
         })
-        response = self.user1_client.get(UNREAD_URL)
+        response = self.user1_client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['unread_count'], 2)
 
         # user2 cannot see the notifications
-        response = self.user2_client.get(UNREAD_URL)
+        response = self.user2_client.get(url)
         self.assertEqual(response.data['unread_count'], 0)
 
     def test_mark_as_read(self):
@@ -94,33 +92,35 @@ class NotificationApiTests(TestCase):
             'content_type': 'tweet',
             'object_id': tweet.id
         })
+        unread_url = '/api/notifications/unread-count/'
         # create comment
         self.user2_client.post(COMMENT_URL, {
             'tweet_id': tweet.id,
             'content': 'ajknjbbha',
         })
-        response = self.user1_client.get(UNREAD_URL)
+        response = self.user1_client.get(unread_url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['unread_count'], 2)
 
+        mark_url = '/api/notifications/mark-all-as-read/'
         # GET not allowed
-        response = self.user1_client.get(MARK_ALL_AS_READ_URL)
+        response = self.user1_client.get(mark_url)
         self.assertEqual(response.status_code, 405)
 
         # anonymous not allowed
-        response = self.anonymous_user.post(MARK_ALL_AS_READ_URL)
+        response = self.anonymous_user.post(mark_url)
         self.assertEqual(response.status_code, 403)
 
         # user2 cannot see any notifications
-        response = self.user2_client.get(UNREAD_URL)
+        response = self.user2_client.get(unread_url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['unread_count'], 0)
 
         # user1 post is allowed, mark all as read
-        response = self.user1_client.post(MARK_ALL_AS_READ_URL)
+        response = self.user1_client.post(mark_url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['marked_count'], 2)
-        response = self.user1_client.get(UNREAD_URL)
+        response = self.user1_client.get(unread_url)
         self.assertEqual(response.data['unread_count'], 0)
 
     def test_list(self):
@@ -165,52 +165,3 @@ class NotificationApiTests(TestCase):
         response = self.user1_client.get(NOTIFICATION_URL, {'unread': False})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 1)
-
-    def test_update(self):
-        tweet = self.create_tweet(self.user1)
-        # create like
-        self.user2_client.post(LIKE_URL, {
-            'content_type': 'tweet',
-            'object_id': tweet.id
-        })
-        # create comment
-        self.user2_client.post(COMMENT_URL, {
-            'tweet_id': tweet.id,
-            'content': 'ajknjbbha',
-        })
-
-        notification = Notification.objects.filter(recipient=self.user1.id).first()
-        url = UPDATE_NOTIFICATION_URL.format(notification.id)
-        # post is not allowed
-        response = self.user1_client.post(url, {'unread': False})
-        self.assertEqual(response.status_code, 405)
-
-        # must log in
-        response = self.anonymous_user.put(url, {'unread': False})
-        self.assertEqual(response.status_code, 403)
-
-        # other users cannot mark as read
-        response = self.user2_client.put(url, {'unread': False})
-        self.assertEqual(response.status_code, 404)
-
-        # mark to be read successfully
-        response = self.user1_client.put(url, {'unread': False})
-        self.assertEqual(response.status_code, 200)
-        response = self.user1_client.get(UNREAD_URL)
-        self.assertEqual(response.data['unread_count'], 1)
-
-        # mark to be unread successfully
-        response = self.user1_client.put(url, {'unread': True})
-        self.assertEqual(response.status_code, 200)
-        response = self.user1_client.get(UNREAD_URL)
-        self.assertEqual(response.data['unread_count'], 2)
-
-        # must hava unread parameter
-        response = self.user1_client.put(url)
-        self.assertEqual(response.status_code, 400)
-
-        # cannot update other info except read/unread
-        response = self.user1_client.put(url, {'unread': False, 'verb': 'newverb'})
-        self.assertEqual(response.status_code, 200)
-        notification.refresh_from_db() #refresh memory
-        self.assertNotEqual(notification.verb, 'newverb')
