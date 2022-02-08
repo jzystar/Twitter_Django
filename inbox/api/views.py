@@ -3,13 +3,16 @@ from notifications.models import Notification
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from inbox.api.serializers import NotificationSerializer
+from inbox.api.serializers import (
+    NotificationSerializer,
+    NotificationSerializerForUpdate,
+)
 
 
 class NotificationViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixin):
 
     permission_classes = (IsAuthenticated,)
-    serializer_class = NotificationSerializer
+    serializer_class = NotificationSerializerForUpdate
     filterset_fields = ('unread',) # unread can be used to be filtered by ListModelMixin
     def get_queryset(self):
         return Notification.objects.filter(recipient=self.request.user)
@@ -27,3 +30,22 @@ class NotificationViewSet(viewsets.GenericViewSet, viewsets.mixins.ListModelMixi
         return Response({
             'marked_count': updated_count
         }, status=status.HTTP_200_OK)
+
+    # /api/notifications/1/
+    def update(self, request, *args, **kwargs):
+        notification = self.get_object()
+        serializer = NotificationSerializerForUpdate(
+            instance = notification,
+            data = request.data,
+        )
+        if not serializer.is_valid():
+            return Response({
+                'success': False,
+                'message': 'Please check your input.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        notification = serializer.save()
+        return Response(
+            NotificationSerializer(notification).data,
+            status=status.HTTP_200_OK
+        )
