@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     'django_filters',
     'notifications',
     # Project apps
+    'accounts',
     'tweets',
     'friendships',
     'newsfeeds',
@@ -141,6 +143,20 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# if unit tests, change DEFAULT_FILE_STORAGE
+MEDIA_ROOT = 'media/'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+TESTING = ((" ".join(sys.argv)).find('manage.py test') != -1)
+if TESTING:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
+# AWS info
+AWS_STORAGE_BUCKET_NAME = 'twitter-backend'
+AWS_S3_REGION_NAME = 'us-west-1'
+# AWS_ACCESS_KEY_ID = 'YOUR_ACCESS_KEY_ID'
+# AWS_SECRET_ACCESS_KEY = 'YOUR_SECRET_ACCESS_KEY'
+
 
 # if local_settings does not exist in production environment, try, catch
 try:
