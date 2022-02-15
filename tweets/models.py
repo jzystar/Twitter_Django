@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from utils.time_helpers import utc_now
 from likes.models import Like
+from tweets.constants import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
 
 
 class Tweet(models.Model):
@@ -33,3 +34,31 @@ class Tweet(models.Model):
 
     def __str__(self):
         return f'{self.created_at} {self.user}: {self.content}'
+
+
+class TweetPhoto(models.Model):
+    # pictures are uploaded with this tweet
+    tweet = models.ForeignKey(Tweet, on_delete=models.SET_NULL, null=True)
+    # who upload the pictures
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    file = models.FileField(null=True)
+    order = models.IntegerField(default=0)
+    status = models.IntegerField(
+        default=TweetPhotoStatus.PENDING,
+        choices=TWEET_PHOTO_STATUS_CHOICES
+    )
+    # soft delete, mark deleted, then delete asynchronously, more efficient
+    has_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        index_together = (
+            ('user', 'created_at'),
+            ('has_deleted', 'created_at'),
+            ('status', 'created_at'),
+            ('tweet', 'order'),
+        )
+
+    def __str__(self):
+        return '{} {}'.format(self.tweet, self.file)
