@@ -199,7 +199,7 @@ class FriendshipApiTests(TestCase):
         response = self.anonymous_user.get(url, {'page': 3, 'size': page_size})
         self.assertEqual(response.status_code, 404)
 
-        # customize page size
+        # customize page size (each page size is > max_page_size)
         response = self.anonymous_user.get(url, {'page': 1, 'size': max_page_size + 1})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), page_size)
@@ -208,6 +208,7 @@ class FriendshipApiTests(TestCase):
         self.assertEqual(response.data['page_number'], 1)
         self.assertEqual(response.data['has_next_page'], True)
 
+        # customize page size (each page only has 2)
         response = self.anonymous_user.get(url, {'page': 1, 'size': 2})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 2)
