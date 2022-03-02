@@ -21,8 +21,6 @@ class NewsFeedApiTest(TestCase):
         self.user2_client = APIClient()
         self.user2_client.force_authenticate(self.user2)
 
-        #
-
     def test_list(self):
         # has to log in
         response = self.anonymous_user.get(NEWSFEEDS_URL)
