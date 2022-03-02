@@ -13,7 +13,7 @@ from friendships.api.serializers import (
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
-    serializer_class = FollowingSerializerForCreate
+    # serializer_class = FollowingSerializerForCreate
     # 我们希望 POST /api/friendship/1/follow 是去 follow user_id=1 的用户
     # 因此这里 queryset 需要是 User.objects.all()
     # 如果是 Friendship.objects.all 的话就会出现 404 Not Found
