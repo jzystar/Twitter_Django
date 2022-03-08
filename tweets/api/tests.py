@@ -13,6 +13,7 @@ TWEET_RETRIEVE_API = '/api/tweets/{}/'
 class TweetApiTests(TestCase):
 
     def setUp(self):
+        self.clear_cache()
         self.user1 = self.create_user('user1', 'user1@gmail.com')
         # create 3 tweets
         self.tweets1 = [self.create_tweet(self.user1) for _ in range(3)]

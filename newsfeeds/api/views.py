@@ -9,9 +9,11 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = EndlessPagination
 
+    def get_queryset(self):
+        return NewsFeed.objects.filter(user=self.request.user)
+
     def list(self, request):
-        newsfeed = NewsFeed.objects.filter(user=self.request.user)
-        newsfeed = self.paginate_queryset(newsfeed)
+        newsfeed = self.paginate_queryset(self.get_queryset())
         serializer = NewsFeedSerializer(
             newsfeed,
             context={'request': request},

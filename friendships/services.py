@@ -32,14 +32,6 @@ class FriendshipService:
 
         return followers
 
-    # check if a has followed b
-    @classmethod
-    def has_followed(cls, from_user, to_user):
-        return Friendship.objects.filter(
-            from_user=from_user,
-            to_user=to_user,
-        ).exists()
-
     @classmethod
     def get_following_user_id_set(cls, from_user_id):
         key = FOLLOWINGS_PATTERN.format(user_id=from_user_id)

@@ -13,6 +13,7 @@ FOLLOW_URL = '/api/friendships/{}/follow/'
 class NewsFeedApiTest(TestCase):
 
     def setUp(self):
+        self.clear_cache()
         self.user1 = self.create_user('testuser1')
         self.user1_client = APIClient()
         self.user1_client.force_authenticate(self.user1)
@@ -93,3 +94,32 @@ class NewsFeedApiTest(TestCase):
         self.assertEqual(response.data['has_next_page'], False)
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0]['id'], newsfeed.id)
+
+    def test_user_cache(self):
+        profile = self.user1.profile
+        profile.nickname = 'user1'
+        profile.save()
+        
+        self.assertEqual(self.user1.username, 'testuser1')
+        self.assertEqual(self.user1.profile.nickname, 'user1')
+        
+        self.create_newsfeed(self.user1, self.create_tweet(self.user2))
+        self.create_newsfeed(self.user1, self.create_tweet(self.user1))
+        response = self.user1_client.get(NEWSFEEDS_URL)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['results'][0]['tweet']['user']['username'], 'testuser1')
+        self.assertEqual(response.data['results'][0]['tweet']['user']['nickname'], 'user1')
+        self.assertEqual(response.data['results'][1]['tweet']['user']['username'], 'testuser2')
+
+        # update username or nickname
+        self.user2.username = 'testuser2_new_username'
+        self.user2.save()
+        profile.nickname = 'user1_new_nickname'
+        profile.save()
+        response = self.user1_client.get(NEWSFEEDS_URL)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['results'][0]['tweet']['user']['username'], 'testuser1')
+        self.assertEqual(response.data['results'][0]['tweet']['user']['nickname'], 'user1_new_nickname')
+        self.assertEqual(response.data['results'][1]['tweet']['user']['username'], 'testuser2_new_username')
+
+

@@ -25,7 +25,7 @@ class FollowingUserIdSetMixin:
 class FollowerSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
     # 可以通过 source=xxx 指定去访问每个 model instance 的 xxx 方法
     # 即 model_instance.xxx 来获得数据
-    user = UserSerializerForFriendship(source='from_user')
+    user = UserSerializerForFriendship(source='cached_from_user')
     has_followed = serializers.SerializerMethodField()
 
     class Meta:
@@ -38,7 +38,7 @@ class FollowerSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
 
 
 class FollowingSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
-    user = UserSerializerForFriendship(source='to_user')
+    user = UserSerializerForFriendship(source='cached_to_user')
     has_followed = serializers.SerializerMethodField()
 
     class Meta:

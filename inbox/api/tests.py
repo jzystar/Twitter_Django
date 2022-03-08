@@ -14,6 +14,7 @@ UPDATE_NOTIFICATION_URL = '/api/notifications/{}/'
 class NotificationTestCase(TestCase):
 
     def setUp(self):
+        self.clear_cache()
         self.user1 = self.create_user('testuser1')
         self.user1_client = APIClient()
         self.user1_client.force_authenticate(self.user1)
