@@ -1,16 +1,18 @@
-from testing.testcases import TestCase
-from rest_framework.test import APIClient
-from friendships.models import Friendship
 from friendships.api.paginations import FriendshipPagination
+from friendships.models import Friendship
+from rest_framework.test import APIClient
+from testing.testcases import TestCase
 
 FOLLOW_URL = '/api/friendships/{}/follow/'
 UNFOLLOW_URL = '/api/friendships/{}/unfollow/'
 FOLLOWERS_URL = '/api/friendships/{}/followers/'
 FOLLOWINGS_URL = '/api/friendships/{}/followings/'
 
+
 class FriendshipApiTests(TestCase):
 
     def setUp(self):
+        self.clear_cache
         self.user1 = self.create_user('testuser1')
         self.user1_client = APIClient()
         self.user1_client.force_authenticate(self.user1)

@@ -1,15 +1,20 @@
-from django.test import TestCase as DjangoTestCase
-from django.contrib.auth.models import User
-from tweets.models import Tweet
-from rest_framework.test import APIClient
 from comments.models import Comment
-from newsfeeds.models import NewsFeed
-from likes.models import Like
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import caches
+from django.test import TestCase as DjangoTestCase
+from likes.models import Like
+from newsfeeds.models import NewsFeed
+from rest_framework.test import APIClient
+from tweets.models import Tweet
 
 
 class TestCase(DjangoTestCase):
-    
+
+    @property
+    def clear_cache(self):
+        caches['testing'].clear()
+
     @property
     def anonymous_user(self):
         if hasattr(self, '_anonymous_user'):

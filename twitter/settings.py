@@ -158,6 +158,23 @@ AWS_S3_REGION_NAME = 'us-west-1'
 # AWS_SECRET_ACCESS_KEY = 'YOUR_SECRET_ACCESS_KEY'
 
 
+# sudo apt-get install memcached
+# use pip install python-memcached  -> Memcached binding
+# DO NOT pip install memcache or django-memcached
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '192.168.33.10:11211',
+        'TIMEOUT': 86400 # cache will be deleted after 86400s, so data eventually consistent
+    },
+    'testing': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '192.168.33.10:11211',
+        'TIMEOUT': 86400,
+        'KEY_PREFIX': 'testing'
+    }
+}
+
 # if local_settings does not exist in production environment, try, catch
 try:
     from .local_settings import *
