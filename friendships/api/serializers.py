@@ -5,7 +5,24 @@ from accounts.api.serializers import UserSerializerForFriendship
 from friendships.services import FriendshipService
 
 
-class FollowerSerializer(serializers.ModelSerializer):
+class FollowingUserIdSetMixin:
+
+    @property
+    def following_user_id_set(self):
+        # not logged in user
+        if self.context['request'].user.is_anonymous:
+            return set([])
+
+        if hasattr(self, '_cached_following_user_id_set'):
+            return self._cached_following_user_id_set
+        user_id_set = FriendshipService.get_following_user_id_set(
+            self.context['request'].user.id
+        )
+        setattr(self, '_cached_following_user_id_set', user_id_set)
+
+        return user_id_set
+
+class FollowerSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
     # 可以通过 source=xxx 指定去访问每个 model instance 的 xxx 方法
     # 即 model_instance.xxx 来获得数据
     user = UserSerializerForFriendship(source='from_user')
@@ -17,14 +34,10 @@ class FollowerSerializer(serializers.ModelSerializer):
 
     # current user checks if he followed user A's followers
     def get_has_followed(self, obj):
-        # not logged in user
-        if self.context['request'].user.is_anonymous:
-            return False
-
-        return FriendshipService.has_followed(self.context['request'].user, obj.from_user)
+        return obj.from_user_id in self.following_user_id_set
 
 
-class FollowingSerializer(serializers.ModelSerializer):
+class FollowingSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
     user = UserSerializerForFriendship(source='to_user')
     has_followed = serializers.SerializerMethodField()
 
@@ -34,10 +47,7 @@ class FollowingSerializer(serializers.ModelSerializer):
 
     # current user checks if he followed user A's followers
     def get_has_followed(self, obj):
-        if self.context['request'].user.is_anonymous:
-            return False
-
-        return FriendshipService.has_followed(self.context['request'].user, obj.to_user)
+        return obj.to_user_id in self.following_user_id_set
 
 
 class FollowingSerializerForCreate(serializers.ModelSerializer):
