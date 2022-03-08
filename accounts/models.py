@@ -1,5 +1,7 @@
-from django.db import models
+from accounts.listeners import user_changed, profile_changed
 from django.contrib.auth.models import User
+from django.db import models
+from django.db.models.signals import post_save, pre_delete
 
 
 class UserProfile(models.Model):
@@ -14,10 +16,11 @@ class UserProfile(models.Model):
         return '{} {}'.format(self.user, self.nickname)
 
 def get_profile(user):
+    from accounts.services import UserService # to avoid cycle import
     if hasattr(user, '_cached_user_profile'):
         return getattr(user, '_cached_user_profile')
 
-    profile, created = UserProfile.objects.get_or_create(user=user)
+    profile = UserService.get_profile_through_cache(user.id)
     setattr(user, '_cached_user_profile', profile)
     return profile
 
@@ -28,3 +31,12 @@ class User:
     def profile():
         get profile logic 
 '''
+# delete will trigger pre_delete
+pre_delete.connect(user_changed, sender=User)
+# create and update will trigger post_save
+post_save.connect(user_changed, sender=User)
+
+
+pre_delete.connect(profile_changed, sender=UserProfile)
+# create and update will trigger post_save
+post_save.connect(profile_changed, sender=UserProfile)

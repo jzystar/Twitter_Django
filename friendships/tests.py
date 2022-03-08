@@ -6,7 +6,7 @@ from testing.testcases import TestCase
 class FriendshipServiceTests(TestCase):
 
     def setUp(self):
-        self.clear_cache
+        self.clear_cache()
         self.user1 = self.create_user('testuser1')
         self.user2 = self.create_user('testuser2')
         self.user3 = self.create_user('testuser3')
@@ -20,7 +20,7 @@ class FriendshipServiceTests(TestCase):
         user_id_set = FriendshipService.get_following_user_id_set(user4.id)
         self.assertEqual(user_id_set, set([self.user1.id, self.user2.id, self.user3.id]))
 
-        # delete on user
+        # delete user
         Friendship.objects.filter(from_user=user4, to_user=self.user1).delete()
         # FriendshipService.invalidate_following_cache(user4.id)
         user_id_set = FriendshipService.get_following_user_id_set(user4.id)

@@ -1,16 +1,16 @@
-from rest_framework import serializers
-from tweets.models import Tweet
 from accounts.api.serializers import UserSerializerForTweet
 from comments.api.serializers import CommentSerializer
-from likes.services import LikeService
 from likes.api.serializers import LikeSerializer
-from tweets.constants import TWEET_PHOTO_UPLOAD_LIMIT
+from likes.services import LikeService
+from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from tweets.constants import TWEET_PHOTO_UPLOAD_LIMIT
+from tweets.models import Tweet
 from tweets.services import TweetService
 
 
 class TweetSerializer(serializers.ModelSerializer):
-    user = UserSerializerForTweet() # adding to show user info
+    user = UserSerializerForTweet(source='cached_user') # adding to show user info
     # SerializerMethodField: customized method
     has_liked = serializers.SerializerMethodField() # liked or not
     likes_count = serializers.SerializerMethodField()

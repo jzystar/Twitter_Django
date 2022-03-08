@@ -11,6 +11,7 @@ from tweets.constants import TweetPhotoStatus
 class TweetTests(TestCase):
 
     def setUp(self):
+        self.clear_cache()
         self.user1 = self.create_user('testuser1')
         self.tweet = self.create_tweet(self.user1)
         self.user_client1 = APIClient()
