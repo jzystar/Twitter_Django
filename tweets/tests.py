@@ -1,11 +1,13 @@
-from testing.testcases import TestCase
+from datetime import timedelta
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
-from tweets.models import Tweet
-from datetime import timedelta
-from utils.time_helpers import utc_now
-from tweets.models import TweetPhoto
+from testing.testcases import TestCase
 from tweets.constants import TweetPhotoStatus
+from tweets.models import Tweet
+from tweets.models import TweetPhoto
+from utils.redis_client import RedisClient
+from utils.time_helpers import utc_now
+from utils.redis_serializers import DjangoModelSerializer
 
 
 class TweetTests(TestCase):
@@ -38,3 +40,17 @@ class TweetTests(TestCase):
         self.assertEqual(photo.user.id, self.user1.id)
         self.assertEqual(photo.status, TweetPhotoStatus.PENDING)
         self.assertEqual(TweetPhoto.objects.count(), 1)
+
+    def test_cache_tweet_in_redis(self):
+        tweet = self.create_tweet(self.user1)
+        conn = RedisClient.get_connection()
+        serialized_data = DjangoModelSerializer.serialize(tweet)
+        key = 'tweet:{}'.format((tweet.id))
+        conn.set(key, serialized_data)
+
+        data = conn.get('wrong_key')
+        self.assertEqual(data, None)
+
+        data = conn.get(key)
+        cached_tweet = DjangoModelSerializer.deserialize(data)
+        self.assertEqual(tweet, cached_tweet)
