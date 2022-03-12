@@ -175,6 +175,13 @@ CACHES = {
     }
 }
 
+# redis install: sudo apt-get install redis
+# pip install redis
+REDIS_HOST = '127.0.0.1'
+REDIS_PORT = 6379
+REDIS_DB = 0 if TESTING else 1
+REDIS_KEY_EXPIRE_TIME = 7 * 86400  # in seconds
+
 # if local_settings does not exist in production environment, try, catch
 try:
     from .local_settings import *
