@@ -84,3 +84,8 @@ class TweetTests(TestCase):
         tweets = TweetService.get_cached_tweets(user.id)
         tweet_ids.insert(0, new_tweet.id)
         self.assertEqual([tweet.id for tweet in tweets], tweet_ids)
+
+        # username updated
+        user.username = 'new_username'
+        user.save()
+        self.assertEqual(tweets[0].user.username, 'new_username')
