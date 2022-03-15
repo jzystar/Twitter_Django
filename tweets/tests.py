@@ -43,7 +43,7 @@ class TweetTests(TestCase):
         self.assertEqual(photo.status, TweetPhotoStatus.PENDING)
         self.assertEqual(TweetPhoto.objects.count(), 1)
 
-    def test_cache_tweet_in_redis(self):
+    def test_cached_tweet_in_redis(self):
         tweet = self.create_tweet(self.user1)
         conn = RedisClient.get_connection()
         serialized_data = DjangoModelSerializer.serialize(tweet)
@@ -57,7 +57,7 @@ class TweetTests(TestCase):
         cached_tweet = DjangoModelSerializer.deserialize(data)
         self.assertEqual(tweet, cached_tweet)
 
-    def test_cached_tweets_list(self):
+    def test_cached_tweet_list_in_redis(self):
         user = self.create_user('user1')
         tweet_ids = []
         for i in range(3):

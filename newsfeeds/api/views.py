@@ -15,9 +15,15 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
         # return NewsFeed.objects.filter(user=self.request.user)
 
     def list(self, request):
-        newsfeed = self.paginate_queryset(self.get_queryset())
+        cached_newsfeeds_list = self.get_queryset()
+        newsfeeds = self.paginator.paginated_cached_list_in_redis(cached_newsfeeds_list, request)
+        # if none, which means data is not in redis cache, then pull from DB.
+        if newsfeeds is None:
+            queryset = NewsFeed.objects.filter(user=request.user)
+            newsfeeds = self.paginate_queryset(queryset)
+
         serializer = NewsFeedSerializer(
-            newsfeed,
+            newsfeeds,
             context={'request': request},
             many=True,
         )
