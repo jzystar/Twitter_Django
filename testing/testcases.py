@@ -46,7 +46,6 @@ class TestCase(DjangoTestCase):
     def create_newsfeed(self, user, tweet):
         return NewsFeed.objects.create(user=user, tweet=tweet)
 
-
     def create_like(self, user, target):
         instance, _ = Like.objects.get_or_create(
             object_id=target.id,

@@ -32,12 +32,9 @@ class TweetViewSet(viewsets.GenericViewSet):
         #     return Response({'error': 'missing user_id'}, status=400)
 
         user_id = request.query_params['user_id']
-        cached_tweets_list = TweetService.get_cached_tweets(user_id)
-        tweets = self.paginator.paginated_cached_list_in_redis(cached_tweets_list, request)
-        if tweets is None:
-            queryset = Tweet.objects.filter(user_id=user_id)
-            tweets = self.paginate_queryset(queryset).order_by('-created_at')
-
+        tweets = TweetService.get_cached_tweets(user_id)
+        # tweets = Tweet.objects.filter(user_id=user_id).order_by('-created_at')
+        tweets = self.paginate_queryset(tweets)
         serializer = TweetSerializer(
             tweets,
             context={'request': request},
