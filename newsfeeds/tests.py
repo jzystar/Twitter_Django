@@ -11,7 +11,7 @@ class NewsFeedServiceTests(TestCase):
         self.user1 = self.create_user('testuser1')
         self.user2 = self.create_user('testuser2')
 
-    def test_newsfeeds_in_cache(self):
+    def test_cached_newsfeed_list_in_redis(self):
         newsfeed_ids = []
         for i in range(3):
             tweet = self.create_tweet(self.user1, 'content:{}'.format(i))
@@ -19,6 +19,7 @@ class NewsFeedServiceTests(TestCase):
             newsfeed_ids.append(newsfeed.id)
         newsfeed_ids = newsfeed_ids[::-1]
 
+        # create_tweet/create_newsfeed will push tweet/newsfeed to redis, clear!
         RedisClient.clear()
         conn = RedisClient.get_connection()
 

@@ -1,6 +1,7 @@
+from dateutil import parser
+from django.conf import settings
 from rest_framework.pagination import BasePagination
 from rest_framework.response import Response
-from dateutil import parser
 
 
 # /api/tweets/?user_id=1&created_at__lt=...
@@ -36,9 +37,6 @@ class EndlessPagination(BasePagination):
         return reverse_ordered_list[index: index + self.page_size]
 
     def paginate_queryset(self, queryset, request, view=None):
-        if type(queryset) == list:
-            return self.paginate_ordered_list(queryset, request)
-
         if 'created_at__gt' in request.query_params:
             queryset = queryset.filter(created_at__gt=request.query_params['created_at__gt'])
             self.has_next_page = False
@@ -52,6 +50,20 @@ class EndlessPagination(BasePagination):
         queryset = queryset.order_by('-created_at')[:self.page_size + 1]
         self.has_next_page = len(queryset) > self.page_size
         return queryset[:self.page_size]
+
+    def paginated_cached_list_in_redis(self, cached_list, request):
+        paginated_list = self.paginate_ordered_list(cached_list, request)
+        if 'created_at__gt' in request.query_params:
+            return paginated_list
+        # if having next page, meaning still have cached data in cached_list
+        if self.has_next_page:
+            return paginated_list
+        # if not having next page, and cached_list has all cached data
+        if len(cached_list) < settings.REDIS_LIST_LENGTH_LIMIT:
+            return paginated_list
+        # if len(cached_list) == settings.REDIS_LIST_LENGTH_LIMIT,
+        # which means maybe there is some data in DB.
+        return None
 
     def get_paginated_response(self, data):
         return Response({
