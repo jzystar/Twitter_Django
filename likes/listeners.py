@@ -11,6 +11,7 @@ def incr_likes_count(sender, instance, created, **kwargs):
     model_class = instance.content_type.model_class()
     if model_class != Tweet:
         Comment.objects.filter(id=instance.object_id).update(likes_count=F('likes_count') + 1)
+        RedisHelper.incr_count(instance.content_object, 'likes_count')
         return
 
     # F has row lock to solve concurrent issues (many likes at the same time).
@@ -28,6 +29,7 @@ def decr_likes_count(sender, instance, **kwargs):
     model_class = instance.content_type.model_class()
     if model_class != Tweet:
         Comment.objects.filter(id=instance.object_id).update(likes_count=F('likes_count') - 1)
+        RedisHelper.decr_count(instance.content_object, 'likes_count')
         return
 
     # F has row lock to solve concurrent issues (many likes at the same time).
