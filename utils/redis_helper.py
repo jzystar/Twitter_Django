@@ -44,3 +44,44 @@ class RedisHelper:
         conn.lpush(key, serialized_data)
         # ensure redis only has up to settings.REDIS_LIST_LENGTH_LIMIT data
         conn.ltrim(key, 0, settings.REDIS_LIST_LENGTH_LIMIT - 1)
+
+    @classmethod
+    def get_count_key(cls, obj, attr):
+        return '{}.{}:{}'.format(obj.__class__.__name__, attr, obj.id)
+
+    @classmethod
+    def incr_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.get_count_key(obj, attr)
+        if conn.exists(key):
+            return conn.incr(key) # increase count by 1 and return
+
+        # refresh form db, don't need to add 1 before set key value
+        obj.refresh_from_db()
+        conn.set(key, getattr(obj, attr)) # getattr(obj, attr) => tweet.likes_count
+        conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
+        return getattr(obj, attr)
+
+    @classmethod
+    def decr_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.get_count_key(obj, attr)
+        if conn.exists(key):
+            return conn.decr(key)
+
+        # refresh form db, don't need to minus 1 before set key value
+        obj.refresh_from_db()
+        conn.set(key, getattr(obj, attr))  # getattr(obj, attr) => tweet.likes_count
+        conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
+        return getattr(obj, attr)
+
+    @classmethod
+    def get_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.get_count_key(obj, attr)
+        if conn.exists(key):
+            return int(conn.get(key)) # use int(), otherwise, return b'1'
+
+        obj.refresh_from_db()
+        conn.set(key, getattr(obj, attr))
+        return getattr(obj, attr)
