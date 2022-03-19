@@ -7,6 +7,8 @@ from rest_framework.exceptions import ValidationError
 from tweets.constants import TWEET_PHOTO_UPLOAD_LIMIT
 from tweets.models import Tweet
 from tweets.services import TweetService
+from utils.redis_helper import RedisHelper
+from random import randint
 
 
 class TweetSerializer(serializers.ModelSerializer):
@@ -34,10 +36,28 @@ class TweetSerializer(serializers.ModelSerializer):
         return LikeService.has_liked(self.context['request'].user, obj)
 
     def get_likes_count(self, obj):
-        return obj.like_set.count()
+        # randomly check if the count in Tweet table and the count in Like table are equal
+        # if not equal, correct. (count in Tweet table might be inaccurate as time going)
+        if randint(0, 999) == 0:
+            actual_likes_count = obj.like_set.count()
+            if obj.likes_count != actual_likes_count:
+                obj.likes_count = actual_likes_count
+                obj.save()
+            return actual_likes_count
+
+        return RedisHelper.get_count(obj, 'likes_count')
+        # return obj.like_set.count()
 
     def get_comments_count(self, obj):
-        return obj.comment_set.count()
+        if randint(0, 999) == 0:
+            actual_comments_count = obj.comment_set.count()
+            if obj.comments_count != actual_comments_count:
+                obj.comments_count = actual_comments_count
+                obj.save()
+            return actual_comments_count
+
+        return RedisHelper.get_count(obj, 'comments_count')
+        # return obj.comment_set.count()
 
     def get_photo_urls(self, obj):
         photo_urls = []

@@ -1,7 +1,7 @@
-from testing.testcases import TestCase
-from rest_framework.test import APIClient
 from comments.models import Comment
 from django.utils import timezone
+from rest_framework.test import APIClient
+from testing.testcases import TestCase
 
 
 COMMENT_URL = '/api/comments/'
@@ -160,3 +160,44 @@ class CommentApiTests(TestCase):
         response = self.user1_client.get(NEWSFEED_LIST_API)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['results'][0]['tweet']['comments_count'], 2)
+
+    def test_comments_count_with_cache_in_redis(self):
+        tweet_url = '/api/tweets/{}/'.format(self.tweet.id)
+        response = self.user1_client.get(tweet_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments_count'], 0)
+
+        # add a comment
+        data = {'tweet_id': self.tweet.id, 'content': 'helloworld'}
+        self.user1_client.post(COMMENT_URL, data)
+        response = self.user1_client.get(tweet_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments_count'], 1)
+        self.tweet.refresh_from_db()
+        self.assertEqual(self.tweet.comments_count, 1)
+
+        # add another comment
+        comment = self.user2_client.post(COMMENT_URL, data).data
+        response = self.user1_client.get(tweet_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments_count'], 2)
+        self.tweet.refresh_from_db()
+        self.assertEqual(self.tweet.comments_count, 2)
+
+        # update comment shouldn't update comments_count
+        comment_url = '{}{}/'.format(COMMENT_URL, comment['id'])
+        response = self.user2_client.put(comment_url, {'content': 'updated'})
+        self.assertEqual(response.status_code, 200)
+        response = self.user1_client.get(tweet_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments_count'], 2)
+        self.tweet.refresh_from_db()
+        self.assertEqual(self.tweet.comments_count, 2)
+
+        # delete a comment will update comments_count (only user2 can delete)
+        self.user2_client.delete(comment_url)
+        response = self.user1_client.get(tweet_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments_count'], 1)
+        self.tweet.refresh_from_db()
+        self.assertEqual(self.tweet.comments_count, 1)
