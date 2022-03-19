@@ -39,8 +39,8 @@ class TweetSerializer(serializers.ModelSerializer):
         # randomly check if the count in Tweet table and the count in Like table are equal
         # if not equal, correct. (count in Tweet table might be inaccurate as time going)
         if randint(0, 999) == 0:
-            actual_likes_count = obj.like_set.count
-            if obj.likes_count != actual_likes_count():
+            actual_likes_count = obj.like_set.count()
+            if obj.likes_count != actual_likes_count:
                 obj.likes_count = actual_likes_count
                 obj.save()
             return actual_likes_count
