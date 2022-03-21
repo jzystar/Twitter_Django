@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
+from kombu import Queue
 import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -185,10 +186,13 @@ REDIS_LIST_LENGTH_LIMIT = 200 if not TESTING else 20 # set limited cached size i
 
 # celery settings
 # to run celery worker => celery -A twitter worker -l INFO
-
 CELERY_BROKER_URL = "redis://127.0.0.1:6379/2" if TESTING else "redis://127.0.0.1:6379/0"
 CELERY_TIMEZONE = 'UTC'
 CELERY_TASK_ALWAYS_EAGER = TESTING # if true, celery will run synchronously
+CELERY_QUEUES = (
+    Queue('default', routing_key='default'),
+    Queue('newsfeeds', routing_key='newsfeeds')
+)
 
 # if local_settings does not exist in production environment, try, catch
 try:
