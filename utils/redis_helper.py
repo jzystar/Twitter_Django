@@ -56,7 +56,7 @@ class RedisHelper:
         if conn.exists(key):
             return conn.incr(key) # increase count by 1 and return
 
-        # refresh form db, don't need to add 1 before set key value
+        # refresh from db, don't need to add 1 before set key value
         obj.refresh_from_db()
         conn.set(key, getattr(obj, attr)) # getattr(obj, attr) => tweet.likes_count
         conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
@@ -69,7 +69,7 @@ class RedisHelper:
         if conn.exists(key):
             return conn.decr(key)
 
-        # refresh form db, don't need to minus 1 before set key value
+        # refresh from db, don't need to minus 1 before set key value
         obj.refresh_from_db()
         conn.set(key, getattr(obj, attr))  # getattr(obj, attr) => tweet.likes_count
         conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)

@@ -1,5 +1,5 @@
-from friendships.services import FriendshipService
 from newsfeeds.models import NewsFeed
+from newsfeeds.tasks import fanout_newsfeeds_tasks
 from twitter.cache import USER_NEWSFEEDS_PATTERN
 from utils.redis_helper import RedisHelper
 
@@ -8,21 +8,9 @@ class NewsFeedService:
     
     @classmethod
     def fanout_to_followers(cls, tweet):
-        followers = FriendshipService.get_followers(tweet.user)
-        # crate N queries, too slow.
-        # for follower in followers:
-        #     NewsFeed.objects.create(user=follower, tweet=tweet)
-        
-        newsfeeds = [
-            # this won't do query insertion without .save()
-            NewsFeed(user=follower, tweet=tweet)
-            for follower in followers
-        ]
-        newsfeeds.append(NewsFeed(user=tweet.user, tweet=tweet))
-        NewsFeed.objects.bulk_create(newsfeeds)
-        # bulk_create won't trigger post_save signal
-        for newsfeed in newsfeeds:
-            cls.push_newsfeed_to_cache(newsfeed)
+        # cannot pass tweet as parameter because celery doesn't know how to serialize Tweet obj
+        fanout_newsfeeds_tasks.delay(tweet.id) # .delay => asynchronously
+        # fanout_newsfeeds_tasks(tweet.id)  # .delay => synchronously
 
     @classmethod
     def get_cached_newsfeeds(cls, user_id):
