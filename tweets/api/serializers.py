@@ -2,13 +2,13 @@ from accounts.api.serializers import UserSerializerForTweet
 from comments.api.serializers import CommentSerializer
 from likes.api.serializers import LikeSerializer
 from likes.services import LikeService
+from random import randint
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from tweets.constants import TWEET_PHOTO_UPLOAD_LIMIT
 from tweets.models import Tweet
 from tweets.services import TweetService
 from utils.redis_helper import RedisHelper
-from random import randint
 
 
 class TweetSerializer(serializers.ModelSerializer):
@@ -37,7 +37,7 @@ class TweetSerializer(serializers.ModelSerializer):
 
     def get_likes_count(self, obj):
         # randomly check if the count in Tweet table and the count in Like table are equal
-        # if not equal, correct. (count in Tweet table might be inaccurate as time going)
+        # if not equal, correct it. (count in Tweet table might be inaccurate as time going)
         if randint(0, 999) == 0:
             actual_likes_count = obj.like_set.count()
             if obj.likes_count != actual_likes_count:

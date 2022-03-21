@@ -183,6 +183,13 @@ REDIS_DB = 0 if TESTING else 1
 REDIS_KEY_EXPIRE_TIME = 7 * 86400  # in seconds
 REDIS_LIST_LENGTH_LIMIT = 200 if not TESTING else 20 # set limited cached size in redis to save space
 
+# celery settings
+# to run celery worker => celery -A twitter worker -l INFO
+
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/2" if TESTING else "redis://127.0.0.1:6379/0"
+CELERY_TIMEZONE = 'UTC'
+CELERY_TASK_ALWAYS_EAGER = TESTING # if true, celery will run synchronously
+
 # if local_settings does not exist in production environment, try, catch
 try:
     from .local_settings import *
