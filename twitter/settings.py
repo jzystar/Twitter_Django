@@ -57,7 +57,8 @@ INSTALLED_APPS = [
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'EXCEPTION_HANDLER': 'utils.ratelimit.exception_handler',
 }
 
 MIDDLEWARE = [
@@ -165,15 +166,21 @@ AWS_S3_REGION_NAME = 'us-west-1'
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '192.168.33.10:11211',
+        'LOCATION': '127.0.0.1:11211',
         'TIMEOUT': 86400 # cache will be deleted after 86400s, so data eventually consistent
     },
     'testing': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '192.168.33.10:11211',
+        'LOCATION': '127.0.0.1:11211',
         'TIMEOUT': 86400,
         'KEY_PREFIX': 'testing'
-    }
+    },
+    'ratelimit': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': 86400 * 7,
+        'KEY_PREFIX': 'rl',
+    },
 }
 
 # redis install: sudo apt-get install redis
@@ -193,6 +200,11 @@ CELERY_QUEUES = (
     Queue('default', routing_key='default'),
     Queue('newsfeeds', routing_key='newsfeeds')
 )
+
+# Rate Limiter
+RATELIMIT_USE_CACHE = 'ratelimit'
+RATELIMIT_CACHE_PREFIX = 'rl:'
+RATELIMIT_ENABLE = not TESTING  # not enabled if testing
 
 # if local_settings does not exist in production environment, try, catch
 try:
