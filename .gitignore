@@ -2,12 +2,12 @@
 .vagrant
 Vagrantfile
 media/
-hbase-2.4.4/
+hbase-2.4.11/
 .DS_Store
-jdk-8u291-linux-x64.tar.gz
-hbase-2.4.4-bin.tar.gz
-thrift-0.14.2.tar.gz
-thrift-0.14.2/
+jdk-8u321-linux-x64.tar.gz
+hbase-2.4.11-bin.tar.gz
+thrift-0.16.0.tar.gz
+thrift-0.16.0/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
