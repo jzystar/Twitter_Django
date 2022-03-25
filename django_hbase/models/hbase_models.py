@@ -1,7 +1,7 @@
+from .exceptions import BadRowKeyError, EmptyColumnError
+from .fields import HBaseField, IntegerField, TimestampField
 from django.conf import settings
 from django_hbase.client import HBaseClient
-from django_hbase.models import HBaseField, IntegerField, TimestampField
-from django_hbase.models.exceptions import BadRowKeyError, EmptyColumnError
 
 
 class HBaseModel:
