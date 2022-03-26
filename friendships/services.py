@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.core.cache import caches
 from friendships.models import Friendship
+from friendships.models import HBaseFollower, HBaseFollowing
+from gatekeeper.models import GateKeeper
+from time import time
 from twitter.cache import FOLLOWINGS_PATTERN
 
 cache = caches['testing'] if settings.TESTING else caches['default']
@@ -58,3 +61,59 @@ class FriendshipService:
     # ex: 3 -> {1, 2, 4}
     # follow 5 and 6 concurrent, write {1, 2, 4, 5} and write {1, 2, 4, 6},
     # suppose to have {1, 2, 4, 5, 6}
+
+    @classmethod
+    def follow(cls, from_user_id, to_user_id):
+        if from_user_id == to_user_id:
+            return
+
+        if not GateKeeper.is_switch_on('switch_friendship_to_hbase'):
+            # crate friendship in MySQL
+            return Friendship.objects.create(
+                from_user_id=from_user_id,
+                to_user_id=to_user_id
+            )
+
+        # create friendship in HBase
+        now = int(time() * 1000000)
+        HBaseFollower.create(
+            created_at=now,
+            to_user_id=to_user_id,
+            from_user_id=from_user_id
+        )
+        return HBaseFollowing.create(
+            from_user_id = from_user_id,
+            created_at = now,
+            to_user_id = to_user_id
+        )
+
+    @classmethod
+    def get_follow_instance_from_hbase(cls, from_user_id, to_user_id):
+        friendships = HBaseFollowing.filter(prefix=(from_user_id, ))
+        for friendship in friendships:
+            if friendship.to_user_id == to_user_id:
+                return friendship
+
+        return None
+
+    @classmethod
+    def has_followed(cls, from_user_id, to_user_id):
+        if from_user_id == to_user_id:
+            return True
+
+        if not GateKeeper.is_switch_on('switch_friendship_to_hbase'):
+            return Friendship.objects.filter(
+                from_user_id=from_user_id,
+                to_user_id=to_user_id
+            ).exists()
+
+        friendship = cls.get_follow_instance_from_hbase(from_user_id, to_user_id)
+        return friendship != None
+
+    @classmethod
+    def get_following_count(cls, from_user_id):
+        if not GateKeeper.is_switch_on('switch_friendship_to_hbase'):
+            return Friendship.objects.filter(from_user_id=from_user_id).count()
+
+        friendships = HBaseFollowing.filter(prefix=(from_user_id,))
+        return len(friendships)

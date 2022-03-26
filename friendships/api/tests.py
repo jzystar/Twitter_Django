@@ -1,5 +1,7 @@
 from friendships.api.paginations import FriendshipPagination
 from friendships.models import Friendship
+from friendships.services import FriendshipService
+from gatekeeper.models import GateKeeper
 from rest_framework.test import APIClient
 from testing.testcases import TestCase
 
@@ -12,7 +14,8 @@ FOLLOWINGS_URL = '/api/friendships/{}/followings/'
 class FriendshipApiTests(TestCase):
 
     def setUp(self):
-        self.clear_cache()
+        # call superclass setup
+        super(FriendshipApiTests, self).setUp()
         self.user1 = self.create_user('testuser1')
         self.user1_client = APIClient()
         self.user1_client.force_authenticate(self.user1)
@@ -24,10 +27,19 @@ class FriendshipApiTests(TestCase):
         # create followings and followers for user2
         for i in range(2):
             follower = self.create_user("testuser2's followers{}".format(i))
-            Friendship.objects.create(from_user=follower, to_user=self.user2)
+            # call create_friendship to crate friendship in MySQL or HBase
+            self.create_friendship(follower, self.user2)
         for i in range(3):
             following = self.create_user("testuser2's followings{}".format(i))
-            Friendship.objects.create(from_user=self.user2, to_user=following)
+            self.create_friendship(self.user2, following)
+
+    def test_follow(self):
+        # test MySQL
+        self._test_follow()
+        # test HBase
+        self.clear_cache()
+        GateKeeper.set('switch_friendship_to_hbase', 'percent', 100)
+        self._test_follow()
 
     def test_follow(self):
         url = FOLLOW_URL.format(self.user1.id)
@@ -54,10 +66,11 @@ class FriendshipApiTests(TestCase):
         response = self.user2_client.post(url)
         self.assertEqual(response.status_code, 400)
         # following adds 1 more record
-        count = Friendship.objects.count()
+        count = FriendshipService.get_following_count(self.user1.id)
         response = self.user1_client.post(FOLLOW_URL.format(self.user2.id))
+        new_count = FriendshipService.get_following_count(self.user1.id)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(Friendship.objects.count(), count + 1)
+        self.assertEqual(count + 1, new_count)
 
     def test_unfollow(self):
         url = UNFOLLOW_URL.format(self.user1.id)
