@@ -7,6 +7,7 @@ from friendships.api.serializers import (
 from django.contrib.auth.models import User
 from django.utils.decorators import method_decorator
 from friendships.models import Friendship
+from friendships.services import FriendshipService
 from ratelimit.decorators import ratelimit
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -45,6 +46,14 @@ class FriendshipViewSet(viewsets.GenericViewSet):
     @method_decorator(ratelimit(key='user', rate='10/s', method='POST', block=True))
     def follow(self, request, pk):
         self.get_object() #check if to_user=pk exist, it not exist return 404
+
+        if FriendshipService.has_followed(request.user.id, int(pk)):
+            return Response({
+                'success': False,
+                'message': 'Please check your input.',
+                'errors': [{'pk': 'You have followed user with id = {}'.format(pk)}]
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = FollowingSerializerForCreate(
             data = {
                 'from_user_id': request.user.id,
@@ -58,6 +67,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
                 'errors': serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
         friendships = serializer.save()
+
         return Response(
             FollowingSerializer(friendships, context={'request': request}).data,
             status=status.HTTP_201_CREATED)
