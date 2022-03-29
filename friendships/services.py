@@ -77,8 +77,8 @@ class FriendshipService:
         # create friendship in HBase
         now = int(time() * 1000000)
         HBaseFollower.create(
-            created_at=now,
             to_user_id=to_user_id,
+            created_at=now,
             from_user_id=from_user_id
         )
         return HBaseFollowing.create(
@@ -86,6 +86,29 @@ class FriendshipService:
             created_at = now,
             to_user_id = to_user_id
         )
+
+    @classmethod
+    def unfollow(cls, from_user_id, to_user_id):
+        if from_user_id == to_user_id:
+            return 0
+
+        if not GateKeeper.is_switch_on('switch_friendship_to_hbase'):
+            # delete friendship in MySQL
+            # deleted: how many were deleted, _: how many were deleted for each category
+            deleted, _ = Friendship.objects.filter(
+                from_user_id=from_user_id,
+                to_user_id=to_user_id
+            ).delete()
+            return deleted
+
+        # delete friendship in HBase
+        instance = cls.get_follow_instance_from_hbase(from_user_id, to_user_id)
+        if instance == None:
+            return 0
+
+        HBaseFollower.delete(to_user_id=to_user_id, created_at=instance.created_at)
+        HBaseFollowing.delete(from_user_id=from_user_id, created_at=instance.created_at)
+        return 1
 
     @classmethod
     def get_follow_instance_from_hbase(cls, from_user_id, to_user_id):

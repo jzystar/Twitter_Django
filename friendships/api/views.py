@@ -81,12 +81,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
                 'success': False,
                 'message': 'You cannot unfollow yourself.'
             }, status=status.HTTP_400_BAD_REQUEST)
-
-        # deleted: how many were deleted, _: how many were deleted for each category
-        deleted, _ = Friendship.objects.filter(
-            from_user=request.user,
-            to_user=unfollow_user
-        ).delete()
+        deleted = FriendshipService.unfollow(request.user.id, unfollow_user.id)
 
         return Response({
             'success': True,

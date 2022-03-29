@@ -69,8 +69,8 @@ class FollowingSerializerForCreate(serializers.Serializer):
                 'message': 'You cannot follow yourself.'
             })
         if Friendship.objects.filter(
-            from_user_id=attrs['from_user_id'],
-            to_user_id=attrs['to_user_id']
+                from_user_id=attrs['from_user_id'],
+                to_user_id=attrs['to_user_id']
         ).exists():
             raise ValidationError({
                 'message': 'You have already followed this user.'
@@ -81,9 +81,6 @@ class FollowingSerializerForCreate(serializers.Serializer):
     def create(self, validate_data):
         from_user_id = validate_data['from_user_id']
         to_user_id = validate_data['to_user_id']
-        friendships = FriendshipService.follow(
-            from_user_id=from_user_id,
-            to_user_id=to_user_id
-        )
+        friendships = FriendshipService.follow(from_user_id, to_user_id)
 
         return friendships
