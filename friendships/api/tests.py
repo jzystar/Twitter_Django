@@ -33,15 +33,14 @@ class FriendshipApiTests(TestCase):
             following = self.create_user("testuser2's followings{}".format(i))
             self.create_friendship(self.user2, following)
 
-    def test_follow(self):
-        # test MySQL
+    def test_follow_in_mysql(self):
         self._test_follow()
-        # test HBase
-        self.clear_cache()
+
+    def test_follow_in_hbase(self):
         GateKeeper.set('switch_friendship_to_hbase', 'percent', 100)
         self._test_follow()
 
-    def test_follow(self):
+    def _test_follow(self):
         url = FOLLOW_URL.format(self.user1.id)
         # have to log in
         response = self.anonymous_user.post(url)
@@ -72,7 +71,14 @@ class FriendshipApiTests(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(count + 1, new_count)
 
-    def test_unfollow(self):
+    def test_unfollow_in_mysql(self):
+        self._test_unfollow()
+
+    def test_unfollow_in_hbase(self):
+        GateKeeper.set('switch_friendship_to_hbase', 'percent', 100)
+        self._test_unfollow()
+
+    def _test_unfollow(self):
         url = UNFOLLOW_URL.format(self.user1.id)
         # have to log in
         response = self.anonymous_user.post(url)
@@ -87,18 +93,20 @@ class FriendshipApiTests(TestCase):
         response = self.user1_client.post(UNFOLLOW_URL.format(0))
         self.assertEqual(response.status_code, 404)
         # unfollow successfully
-        Friendship.objects.create(from_user=self.user2, to_user=self.user1)
-        count = Friendship.objects.count()
+        self.create_friendship(self.user2, self.user1)
+        count = FriendshipService.get_following_count(self.user2.id)
         response = self.user2_client.post(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['deleted'], 1)
-        self.assertEqual(Friendship.objects.count(), count - 1)
+        new_count = FriendshipService.get_following_count(self.user2.id)
+        self.assertEqual(new_count, count - 1)
         # unfollow twice (user clicks twice in very short time)
-        count = Friendship.objects.count()
+        count = FriendshipService.get_following_count(self.user2.id)
         response = self.user2_client.post(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['deleted'], 0)
-        self.assertEqual(Friendship.objects.count(), count)
+        new_count = FriendshipService.get_following_count(self.user2.id)
+        self.assertEqual(new_count, count)
 
     def test_followings(self):
         url = FOLLOWINGS_URL.format(self.user2.id)
